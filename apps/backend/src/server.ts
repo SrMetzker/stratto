@@ -1,5 +1,8 @@
 import express from 'express'
 import cors from 'cors'
+import helmet from 'helmet'
+import { config } from 'dotenv'
+import rateLimit from 'express-rate-limit'
 import { errorHandler } from './middleware/errorHandler'
 import { authenticateToken } from './middleware/auth'
 import { ensureSubscriptionAccess } from './middleware/subscription'
@@ -10,12 +13,27 @@ import stockRoutes from './features/stock/routes'
 import ordersRoutes from './features/orders/routes'
 import recipesRoutes from './features/recipes/routes'
 
+// Carrega variáveis de ambiente antes de tudo
+config()
+
+// Validação de variáveis obrigatórias no startup — falha rápido e explícito
+const REQUIRED_ENV = ['JWT_SECRET', 'DATABASE_URL'] as const
+for (const key of REQUIRED_ENV) {
+  if (!process.env[key]) {
+    throw new Error(`Variável de ambiente obrigatória ausente: ${key}`)
+  }
+}
+
 const port: number = Number(process.env.PORT) || 3000;
 const app = express()
 
 // Middlewares
-app.use(cors())
-app.use(express.json())
+app.use(helmet())
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) ?? [],
+  credentials: true,
+}))
+app.use(express.json({ limit: '10kb' }))
 
 // Routes
 app.use('/establishments', authenticateToken, ensureSubscriptionAccess, establishmentsRoutes)

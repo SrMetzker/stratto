@@ -2,6 +2,12 @@ import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { AppError } from '../utils/errors'
 
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET
+  if (!secret) throw new Error('JWT_SECRET environment variable is required')
+  return secret
+}
+
 export type UserRole = 'ADMIN' | 'MANAGER' | 'BARTENDER' | 'CHEF'
 
 interface JwtPayload {
@@ -30,7 +36,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret') as JwtPayload
+     const decoded = jwt.verify(token, getJwtSecret()) as JwtPayload
     req.user = decoded
     next()
   } catch (error) {

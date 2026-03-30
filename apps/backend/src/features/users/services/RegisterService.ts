@@ -117,7 +117,7 @@ export class RegisterService {
         role: created.user.role,
         establishmentIds: [created.establishment.id]
       },
-      process.env.JWT_SECRET || 'default-secret',
+        process.env.JWT_SECRET!,
       { expiresIn: '24h' }
     )
 

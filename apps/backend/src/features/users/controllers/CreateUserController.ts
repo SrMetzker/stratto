@@ -17,8 +17,8 @@ const normalizeRole = (value: unknown): 'ADMIN' | 'MANAGER' | 'BARTENDER' | 'CHE
 
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, password, name, role, establishmentIds, createdBy: bodyCreatedBy } = req.body
-    const createdBy = req.user?.userId ?? bodyCreatedBy
+  const { email, password, name, role, establishmentIds } = req.body
+  const createdBy = req.user?.userId
 
     let scopedRole = normalizeRole(role)
     let scopedEstablishmentIds = establishmentIds as string[] | undefined

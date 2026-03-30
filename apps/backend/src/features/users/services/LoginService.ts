@@ -1,7 +1,7 @@
 import { prisma } from '../../../config/database'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { ValidationError, NotFoundError } from '../../../utils/errors'
+import { AppError, ValidationError } from '../../../utils/errors'
 
 interface LoginInput {
   email: string
@@ -49,13 +49,13 @@ export class LoginService {
     })
 
     if (!user) {
-      throw new NotFoundError('Credenciales inválidas')
+      throw new AppError(401, 'Credenciales inválidas')
     }
 
     // Verifica senha
     const isPasswordValid = await bcrypt.compare(input.password, user.password)
     if (!isPasswordValid) {
-      throw new ValidationError('Credenciales inválidas')
+      throw new AppError(401, 'Credenciales inválidas')
     }
 
     // Gera token JWT
@@ -66,7 +66,7 @@ export class LoginService {
         role: user.role,
         establishmentIds: user.establishments.map((item) => item.establishmentId)
       },
-      process.env.JWT_SECRET || 'default-secret',
+      process.env.JWT_SECRET!,
       { expiresIn: '24h' }
     )
 

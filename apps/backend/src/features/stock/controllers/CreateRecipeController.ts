@@ -6,8 +6,8 @@ const service = new CreateRecipeService()
 
 export const createRecipe = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { productId, items, createdBy: bodyCreatedBy } = req.body
-    const createdBy = req.user?.userId ?? bodyCreatedBy
+     const { productId, items } = req.body
+     const createdBy = req.user?.userId
 
     if (!productId) {
       throw new ValidationError('¡El productId es obligatorio!')

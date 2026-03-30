@@ -6,8 +6,8 @@ const service = new CreateIngredientService()
 
 export const createIngredient = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, unit, currentStock, minimumStock, establishmentId, createdBy: bodyCreatedBy } = req.body
-    const createdBy = req.user?.userId ?? bodyCreatedBy
+     const { name, unit, currentStock, minimumStock, establishmentId } = req.body
+     const createdBy = req.user?.userId
 
     if (!name || !unit || currentStock === undefined || !establishmentId || !createdBy) {
       throw new ValidationError('name, unit, currentStock, establishmentId y createdBy son obligatorios')
