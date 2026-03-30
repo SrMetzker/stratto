@@ -4,6 +4,7 @@ import { subscriptionApi } from '@/api/subscription'
 import { authApi } from '@/api/auth'
 import { Button } from '@/components/ui/Button'
 import { Input, Select } from '@/components/ui/Input'
+import { useEstablishments } from '@/hooks'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from '@/store/toastStore'
 import type { PublicPlan, SubscriptionStatusResponse } from '@/types'
@@ -37,6 +38,7 @@ const formatPrice = (priceCents: number, currency: string) => {
 
 export const SubscriptionPage: React.FC = () => {
   const { user, activeEstablishmentId, setActiveEstablishmentId } = useAuthStore()
+  const { data: liveEstablishments } = useEstablishments()
   const [loading, setLoading] = useState(false)
   const [submittingManual, setSubmittingManual] = useState(false)
   const [submittingPlan, setSubmittingPlan] = useState(false)
@@ -48,8 +50,14 @@ export const SubscriptionPage: React.FC = () => {
   const [providerReference, setProviderReference] = useState('')
   const [amountCents, setAmountCents] = useState('')
 
-  const establishments = user?.establishments ?? []
   const isAdmin = user?.role === 'admin'
+  const establishments = isAdmin
+    ? (liveEstablishments ?? []).map((item) => ({
+        id: item.id,
+        establishmentId: item.id,
+        establishment: { name: item.name },
+      }))
+    : (user?.establishments ?? [])
 
   const establishmentId = useMemo(() => {
     return activeEstablishmentId ?? establishments[0]?.establishmentId

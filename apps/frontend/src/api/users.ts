@@ -59,10 +59,10 @@ const getContext = () => {
 
 export const usersApi = {
   getAll: async (): Promise<User[]> => {
-    const { establishmentId } = getContext()
+    const { establishmentId, role } = getContext()
     const response = await apiClient.get<BackendUser[]>('/users', {
       params: {
-        establishmentId: establishmentId ?? undefined,
+        establishmentId: role !== 'admin' ? establishmentId ?? undefined : undefined,
       },
     })
 
