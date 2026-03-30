@@ -17,6 +17,7 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
+import { useEstablishments } from '@/hooks'
 import { hasAnyRole, ROUTE_ROLE_MAP, type AppRole } from '@/utils/rbac'
 
 interface NavItem {
@@ -46,9 +47,17 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
   const { user, logout, activeEstablishmentId, setActiveEstablishmentId } = useAuthStore()
+  const { data: liveEstablishments } = useEstablishments()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const visibleNavItems = navItems.filter((item) => hasAnyRole(user?.role, item.allowedRoles))
+  const establishmentOptions = user?.role === 'admin'
+    ? (liveEstablishments ?? []).map((item) => ({
+        id: item.id,
+        establishmentId: item.id,
+        establishment: { name: item.name },
+      }))
+    : (user?.establishments ?? [])
 
   const handleLogout = () => {
     logout()
@@ -134,13 +143,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
               </div>
             </div>
 
-            {(user?.establishments?.length ?? 0) > 0 && (
+            {establishmentOptions.length > 0 && (
               <select
-                value={activeEstablishmentId ?? ''}
+                value={activeEstablishmentId ?? establishmentOptions[0]?.establishmentId ?? ''}
                 onChange={(event) => handleEstablishmentChange(event.target.value)}
                 className="input-field !py-2 !text-xs"
               >
-                {user?.establishments?.map((item) => (
+                {establishmentOptions.map((item) => (
                   <option key={item.id} value={item.establishmentId}>
                     {item.establishment?.name ?? item.establishmentId}
                   </option>
