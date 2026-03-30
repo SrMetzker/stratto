@@ -16,8 +16,8 @@ const VALID_CATEGORIES = new Set([
 
 export const createProduct = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, sku, price, category, establishmentId, createdBy: bodyCreatedBy } = req.body
-    const createdBy = req.user?.userId ?? bodyCreatedBy
+     const { name, sku, price, category, establishmentId } = req.body
+     const createdBy = req.user?.userId
 
     if (!name) {
       throw new ValidationError('¡El nombre del producto es obligatorio!')

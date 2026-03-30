@@ -7,8 +7,8 @@ const service = new CloseOrderService()
 export const closeOrder = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params
-    const { createdBy: bodyCreatedBy, allowNegativeStock } = req.body
-    const createdBy = req.user?.userId ?? bodyCreatedBy
+      const { allowNegativeStock } = req.body
+      const createdBy = req.user?.userId
 
     if (!id) {
       throw new ValidationError('No fue posible identificar el pedido para finalizar')
@@ -18,10 +18,13 @@ export const closeOrder = async (req: Request, res: Response, next: NextFunction
       throw new ValidationError('createdBy es obligatorio para registrar movimiento de inventario')
     }
 
+      // Apenas ADMIN e MANAGER podem forçar fechamento com estoque negativo
+      const canOverrideStock = req.user?.role === 'ADMIN' || req.user?.role === 'MANAGER'
+
     const order = await service.execute({
       orderId: id as string,
       createdBy,
-      allowNegativeStock: Boolean(allowNegativeStock),
+        allowNegativeStock: canOverrideStock && Boolean(allowNegativeStock),
     })
 
     res.json(order)

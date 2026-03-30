@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 import { getUsers } from './controllers/GetUsersController'
 import { createUser } from './controllers/CreateUserController'
 import { updateUser } from './controllers/UpdateUserController'
@@ -16,8 +17,17 @@ import { ensureSubscriptionAccess } from '../../middleware/subscription'
 
 const router = Router()
 
-router.post('/login', login)
-router.post('/register', register)
+// Rate limiting: máx 10 tentativas por IP a cada 15 minutos
+const authLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	max: 10,
+	standardHeaders: true,
+	legacyHeaders: false,
+	message: { error: 'Muitas tentativas. Tente novamente em 15 minutos.' },
+})
+
+router.post('/login', authLimiter, login)
+router.post('/register', authLimiter, register)
 router.get('/plans/public', listPublicPlans)
 router.post('/lead', captureLead)
 
