@@ -5,6 +5,7 @@ import { createUser } from './controllers/CreateUserController'
 import { updateUser } from './controllers/UpdateUserController'
 import { deleteUser } from './controllers/DeleteUserController'
 import { login } from './controllers/LoginController'
+import { logout } from './controllers/LogoutController'
 import { register } from './controllers/RegisterController'
 import { listPublicPlans } from './controllers/ListPublicPlansController'
 import { captureLead } from './controllers/CaptureLeadController'
@@ -32,6 +33,8 @@ router.get('/plans/public', listPublicPlans)
 router.post('/lead', captureLead)
 
 router.use(authenticateToken)
+
+router.post('/logout', logout)
 
 router.get('/subscription/status', getSubscriptionStatus)
 router.post('/subscription/change-plan', authorizeRoles('ADMIN', 'MANAGER'), changeSubscriptionPlan)

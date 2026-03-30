@@ -133,7 +133,7 @@ export const authApi = {
   },
 
   logout: async (): Promise<void> => {
-    return Promise.resolve()
+    await apiClient.post('/users/logout')
   },
 
   me: async (): Promise<User> => {

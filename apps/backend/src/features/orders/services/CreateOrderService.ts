@@ -47,6 +47,11 @@ export class CreateOrderService {
       if (!product.recipe) throw new ValidationError(`Producto ${product.name} sin receta configurada`)
       if (orderItem.quantity <= 0) throw new ValidationError('La cantidad del ítem debe ser mayor que cero')
 
+      // Garante que o produto pertence ao mesmo estabelecimento da mesa
+      if (product.establishmentId !== table.establishmentId) {
+        throw new ValidationError(`Producto ${product.name} no pertenece al establecimiento de esta mesa`)
+      }
+
       total += product.price * orderItem.quantity
     }
 

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { UpdateProductService } from '../services/UpdateProductService'
-import { ValidationError } from '../../../utils/errors'
+import { AppError, ValidationError } from '../../../utils/errors'
 
 const service = new UpdateProductService()
 
@@ -55,6 +55,13 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
       updateInput.category = category
     }
     if (establishmentId !== undefined) {
+      // IDOR: MANAGER e BARTENDER/CHEF não podem mover produto para est. fora do seu escopo
+      if (req.user?.role !== 'ADMIN') {
+        const allowed = new Set(req.user?.establishmentIds ?? [])
+        if (!allowed.has(establishmentId as string)) {
+          throw new AppError(403, '¡No tienes permiso para mover el producto a ese establecimiento!')
+        }
+      }
       updateInput.establishmentId = establishmentId
     }
 

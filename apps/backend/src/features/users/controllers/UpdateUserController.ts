@@ -46,13 +46,20 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
       throw new ValidationError('¡Al menos un campo debe ser proporcionado para la actualización!')
     }
 
-    const updatedUser = await service.execute(id as string, {
-      email: email as string,
-      password: password as string,
-      name: name as string,
-      role: scopedRole,
-      establishmentIds: scopedEstablishmentIds
-    })
+    const updatedUser = await service.execute(
+      id as string,
+      {
+        email: email as string,
+        password: password as string,
+        name: name as string,
+        role: scopedRole,
+        establishmentIds: scopedEstablishmentIds
+      },
+      {
+        ...(req.user?.role ? { requesterRole: req.user.role } : {}),
+        ...(req.user?.establishmentIds ? { requesterEstablishmentIds: req.user.establishmentIds } : {}),
+      }
+    )
 
     res.json(updatedUser)
   } catch (error) {

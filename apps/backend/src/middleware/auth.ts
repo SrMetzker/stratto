@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { AppError } from '../utils/errors'
+import { isBlocklisted } from '../utils/tokenBlocklist'
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET
@@ -33,6 +34,10 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 
   if (!token) {
     throw new AppError(401, 'Se requiere token de acceso')
+  }
+
+  if (isBlocklisted(token)) {
+    throw new AppError(401, 'Token inválido ou expirado')
   }
 
   try {

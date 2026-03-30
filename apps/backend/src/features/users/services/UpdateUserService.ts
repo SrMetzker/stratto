@@ -1,6 +1,7 @@
 import { prisma } from '../../../config/database'
-import { InternalServerError, NotFoundError } from '../../../utils/errors'
+import { AppError, InternalServerError, NotFoundError } from '../../../utils/errors'
 import bcrypt from 'bcryptjs'
+import type { UserRole } from '../../../middleware/auth'
 
 interface UpdateUserInput {
   email?: string
@@ -10,15 +11,30 @@ interface UpdateUserInput {
   establishmentIds?: string[] | undefined
 }
 
+interface UpdateUserContext {
+  requesterRole?: UserRole
+  requesterEstablishmentIds?: string[]
+}
+
 export class UpdateUserService {
-  async execute(userId: string, input: UpdateUserInput) {
-    // Verifica se o usuário existe
+  async execute(userId: string, input: UpdateUserInput, ctx?: UpdateUserContext) {
+    // Verifica se o usuário existe (com vínculos para checar escopo IDOR)
     const existingUser = await prisma.user.findUnique({
-      where: { id: userId }
+      where: { id: userId },
+      include: { establishments: { select: { establishmentId: true } } }
     })
 
     if (!existingUser) {
       throw new NotFoundError('¡No fue posible identificar al usuario para actualización!')
+    }
+
+    // IDOR: MANAGER só pode atualizar usuários do seu próprio estabelecimento
+    if (ctx?.requesterRole === 'MANAGER') {
+      const targetEstIds = existingUser.establishments.map((e) => e.establishmentId)
+      const hasOverlap = targetEstIds.some((id) => ctx.requesterEstablishmentIds?.includes(id))
+      if (!hasOverlap) {
+        throw new AppError(403, '¡No tienes permiso para modificar este usuario!')
+      }
     }
 
     // Se a senha for fornecida, faz hash dela
