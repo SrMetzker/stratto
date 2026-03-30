@@ -14,7 +14,11 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
     }
 
     const requesterRole = req.user?.role
-    const result = await service.execute(id as string, { requesterRole: requesterRole as UserRole })
+    const requesterEstablishmentIds = req.user?.establishmentIds
+    const result = await service.execute(id as string, {
+      ...(requesterRole ? { requesterRole: requesterRole as UserRole } : {}),
+      ...(requesterEstablishmentIds ? { requesterEstablishmentIds } : {})
+    })
 
     res.json(result)
   } catch (error) {

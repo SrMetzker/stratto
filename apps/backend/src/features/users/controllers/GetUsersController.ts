@@ -8,10 +8,12 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
   try {
     const { establishmentId } = req.query
     const requesterRole = req.user?.role as UserRole | undefined
+    const requesterEstablishmentIds = req.user?.establishmentIds
 
     const input = {
-      establishmentId: establishmentId as string,
-      ...(requesterRole ? { requesterRole } : {})
+      ...(typeof establishmentId === 'string' && establishmentId.trim() ? { establishmentId } : {}),
+      ...(requesterRole ? { requesterRole } : {}),
+      ...(requesterEstablishmentIds ? { requesterEstablishmentIds } : {})
     }
 
     const users = await service.execute(input)
