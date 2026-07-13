@@ -14,6 +14,7 @@ import { ReportsPage } from '@/pages/ReportsPage'
 import { EstablishmentsPage } from '@/pages/EstablishmentsPage'
 import { UsersPage } from '@/pages/UsersPage'
 import { SubscriptionPage } from '@/pages/SubscriptionPage'
+import { ResetPasswordPage } from '@/pages/ResetPasswordPage'
 import { RoleGuard } from '@/components/auth/RoleGuard'
 import { useAuthStore } from '@/store/authStore'
 import { getDefaultRouteForRole, ROUTE_ROLE_MAP } from '@/utils/rbac'
@@ -35,6 +36,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route element={<Layout />}>
             <Route path="/" element={<HomeRedirect />} />
             <Route

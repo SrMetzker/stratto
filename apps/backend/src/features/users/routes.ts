@@ -12,6 +12,7 @@ import { captureLead } from './controllers/CaptureLeadController'
 import { getSubscriptionStatus } from './controllers/GetSubscriptionStatusController'
 import { markSubscriptionAsPaid } from './controllers/MarkSubscriptionAsPaidController'
 import { changeSubscriptionPlan } from './controllers/ChangeSubscriptionPlanController'
+import { neonLogin, neonRegister, requestPasswordReset, confirmPasswordReset } from './controllers/NeonAuthController'
 import { authenticateToken } from '../../middleware/auth'
 import { authorizeRoles, enforceEstablishmentScope } from '../../middleware/authorization'
 import { ensureSubscriptionAccess } from '../../middleware/subscription'
@@ -29,6 +30,10 @@ const authLimiter = rateLimit({
 
 router.post('/login', authLimiter, login)
 router.post('/register', authLimiter, register)
+router.post('/neon/login', authLimiter, neonLogin)
+router.post('/neon/register', authLimiter, neonRegister)
+router.post('/password/reset-request', authLimiter, requestPasswordReset)
+router.post('/password/reset-confirm', authLimiter, confirmPasswordReset)
 router.get('/plans/public', listPublicPlans)
 router.post('/lead', captureLead)
 
