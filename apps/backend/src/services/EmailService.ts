@@ -45,7 +45,12 @@ export class EmailService {
         console.info(`[EmailService] Password reset email sent via SendGrid to: ${email}`)
         return
       } catch (error) {
-        console.error('[EmailService] SendGrid error:', error instanceof Error ? error.message : String(error))
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        const errorBody = (error as any)?.response?.body?.errors
+
+        console.error('[EmailService] SendGrid error:', errorMessage)
+        console.error('[EmailService] Error details:', JSON.stringify(errorBody, null, 2))
+        console.error('[EmailService] From email:', process.env.SENDGRID_FROM_EMAIL || 'noreply@stratto.com')
         throw error
       }
     }
