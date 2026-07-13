@@ -57,6 +57,7 @@ JWT_SECRET="sua-chave-secreta-super-segura-aqui"
 NEON_AUTH_URL="https://<seu-auth>.neon.tech"
 NEON_AUTH_BASE_URL="https://<seu-auth>.neon.tech"
 NEON_AUTH_COOKIE_SECRET="sua-chave"
+NEON_AUTH_SIGNUP_CALLBACK_URL="http://localhost:5173/login"
 NEON_AUTH_RESET_REDIRECT_URL="http://localhost:5173/reset-password"
 FRONTEND_URL="http://localhost:5173"
 ```
