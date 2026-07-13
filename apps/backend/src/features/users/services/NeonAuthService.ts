@@ -51,6 +51,7 @@ function getNeonAuthClient() {
     throw new Error('Neon Auth not configured')
   }
 
+  // Initialize Neon Auth client
   return createAuthClient(process.env.NEON_AUTH_URL!)
 }
 
@@ -166,6 +167,9 @@ export class NeonAuthService {
     try {
       const client = getNeonAuthClient()
       console.info(`[NeonAuth] Registrando usuário: ${input.email}`)
+      console.info(`[NeonAuth] NEON_AUTH_URL: ${process.env.NEON_AUTH_URL}`)
+      console.info(`[NeonAuth] NEON_AUTH_BASE_URL: ${process.env.NEON_AUTH_BASE_URL}`)
+
       neonAuthResult = await client.signUp.email({
         email: input.email,
         password: input.password,
@@ -177,6 +181,7 @@ export class NeonAuthService {
       const errorDetails = (error as any)?.response?.body || (error as any)?.errors || {}
       console.error(`[NeonAuth] Erro ao registrar usuário ${input.email}:`, errorMsg)
       console.error(`[NeonAuth] Detalhes do erro:`, JSON.stringify(errorDetails, null, 2))
+      console.error(`[NeonAuth] Stack:`, error instanceof Error ? error.stack : 'N/A')
       // Continua criando localmente mesmo se Neon Auth falhar
     }
 
