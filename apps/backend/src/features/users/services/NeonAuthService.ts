@@ -30,11 +30,20 @@ interface NeonAuthResetConfirmInput {
 }
 
 function isNeonAuthConfigured(): boolean {
-  return Boolean(
+  const configured = Boolean(
     process.env.NEON_AUTH_BASE_URL &&
     process.env.NEON_AUTH_COOKIE_SECRET &&
     process.env.NEON_AUTH_URL
   )
+
+  if (!configured) {
+    console.warn('[NeonAuth] Configuration incomplete:')
+    console.warn(`  NEON_AUTH_URL: ${process.env.NEON_AUTH_URL ? '✓' : '✗ MISSING'}`)
+    console.warn(`  NEON_AUTH_BASE_URL: ${process.env.NEON_AUTH_BASE_URL ? '✓' : '✗ MISSING'}`)
+    console.warn(`  NEON_AUTH_COOKIE_SECRET: ${process.env.NEON_AUTH_COOKIE_SECRET ? '✓' : '✗ MISSING'}`)
+  }
+
+  return configured
 }
 
 function getNeonAuthClient() {
