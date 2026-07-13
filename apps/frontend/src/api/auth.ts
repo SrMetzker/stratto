@@ -118,12 +118,12 @@ export const extractApiErrorMessage = (
 
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const response = await apiClient.post<AuthPayload>('/users/login', credentials)
+    const response = await apiClient.post<AuthPayload>('/users/neon/login', credentials)
     return toAuthResponse(response.data)
   },
 
   register: async (payload: RegisterPayload): Promise<AuthResponse> => {
-    const response = await apiClient.post<AuthPayload>('/users/register', payload)
+    const response = await apiClient.post<AuthPayload>('/users/neon/register', payload)
     return toAuthResponse(response.data)
   },
 
