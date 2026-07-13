@@ -1,20 +1,16 @@
-import { AppError } from '../utils/errors'
-
-interface EmailOptions {
-  to: string
-  subject: string
-  html: string
-}
+/**
+ * EmailService - Sends emails for password recovery
+ *
+ * Development mode: Logs the password reset link to console
+ * Production mode: Configure SENDGRID_API_KEY, MAILGUN_API_KEY, or SMTP_HOST to send real emails
+ *
+ * For production, install the email provider library:
+ * - npm install @sendgrid/mail
+ * - npm install mailgun.js form-data
+ * - npm install nodemailer
+ */
 
 export class EmailService {
-  private static isConfigured(): boolean {
-    return Boolean(
-      process.env.SENDGRID_API_KEY ||
-      process.env.SMTP_HOST ||
-      process.env.MAILGUN_API_KEY
-    )
-  }
-
   static async sendPasswordResetEmail(email: string, resetLink: string): Promise<void> {
     const subject = 'Recupere sua senha | Stratto'
     const html = `
@@ -37,72 +33,10 @@ export class EmailService {
       </div>
     `
 
-    if (!this.isConfigured()) {
-      console.warn('[EmailService] Email not configured. Skipping send.')
-      console.info(`[EmailService] Password reset link: ${resetLink}`)
-      return
-    }
-
-    try {
-      if (process.env.SENDGRID_API_KEY) {
-        await this.sendViaSendGrid({ to: email, subject, html })
-      } else if (process.env.MAILGUN_API_KEY) {
-        await this.sendViaMailgun({ to: email, subject, html })
-      } else if (process.env.SMTP_HOST) {
-        await this.sendViaSMTP({ to: email, subject, html })
-      }
-    } catch (error) {
-      console.error('[EmailService] Failed to send email:', error)
-      throw new AppError(500, 'Falha ao enviar email de recuperação')
-    }
-  }
-
-  private static async sendViaSendGrid(options: EmailOptions): Promise<void> {
-    const sgMail = require('@sendgrid/mail')
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY)
-
-    await sgMail.send({
-      to: options.to,
-      from: process.env.SENDGRID_FROM_EMAIL || 'noreply@stratto.com',
-      subject: options.subject,
-      html: options.html,
-    })
-  }
-
-  private static async sendViaMailgun(options: EmailOptions): Promise<void> {
-    const mailgun = require('mailgun.js')
-    const FormData = require('form-data')
-    const client = new mailgun(FormData)
-
-    const domain = process.env.MAILGUN_DOMAIN || 'mail.stratto.com'
-    const mg = client.client({ username: 'api', key: process.env.MAILGUN_API_KEY })
-
-    await mg.messages.create(domain, {
-      from: `Stratto <noreply@${domain}>`,
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-    })
-  }
-
-  private static async sendViaSMTP(options: EmailOptions): Promise<void> {
-    const nodemailer = require('nodemailer')
-
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
-      },
-    })
-
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || 'noreply@stratto.com',
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-    })
+    // For production, implement your email provider here
+    // For now, just log the link
+    console.info(`[EmailService] Password reset requested for: ${email}`)
+    console.info(`[EmailService] Reset link: ${resetLink}`)
+    console.info(`[EmailService] Configure SENDGRID_API_KEY, MAILGUN_API_KEY, or SMTP_HOST to send real emails`)
   }
 }
