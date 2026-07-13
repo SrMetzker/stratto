@@ -52,6 +52,13 @@ Crie um arquivo `.env` baseado no `.env.example`:
 ```env
 DATABASE_URL="postgresql://username:password@localhost:5432/stratto"
 JWT_SECRET="sua-chave-secreta-super-segura-aqui"
+
+# Neon Auth (opcional)
+NEON_AUTH_URL="https://<seu-auth>.neon.tech"
+NEON_AUTH_BASE_URL="https://<seu-auth>.neon.tech"
+NEON_AUTH_COOKIE_SECRET="sua-chave"
+NEON_AUTH_RESET_REDIRECT_URL="http://localhost:5173/reset-password"
+FRONTEND_URL="http://localhost:5173"
 ```
 
 ### 5. **Testando com curl**
@@ -77,7 +84,11 @@ curl -X GET http://localhost:3000/products/ \
 ## 📋 API Endpoints
 
 ### Usuários
-- `POST /users/login` - Login
+- `POST /users/login` - Login local
+- `POST /users/neon/login` - Login via Neon Auth (quando configurado)
+- `POST /users/neon/register` - Registro via Neon Auth (quando configurado)
+- `POST /users/password/reset-request` - Solicitar recuperação de senha
+- `POST /users/password/reset-confirm` - Confirmar nova senha com token
 - `GET /users/` - Listar usuários
 - `POST /users/` - Criar usuário
 - `PUT /users/:id` - Editar usuário

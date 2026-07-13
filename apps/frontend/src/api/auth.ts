@@ -1,5 +1,14 @@
 import axios from 'axios'
 import type { AuthResponse, LoginCredentials, PublicPlan, RegisterPayload, User } from '@/types'
+
+interface PasswordResetRequestPayload {
+  email: string
+}
+
+interface PasswordResetConfirmPayload {
+  token: string
+  newPassword: string
+}
 import apiClient from '@/api/client'
 import { normalizeRole } from '@/utils/rbac'
 
@@ -134,6 +143,16 @@ export const authApi = {
 
   logout: async (): Promise<void> => {
     await apiClient.post('/users/logout')
+  },
+
+  requestPasswordReset: async (payload: PasswordResetRequestPayload): Promise<{ message: string }> => {
+    const response = await apiClient.post<{ message: string }>('/users/password/reset-request', payload)
+    return response.data
+  },
+
+  confirmPasswordReset: async (payload: PasswordResetConfirmPayload): Promise<{ message: string }> => {
+    const response = await apiClient.post<{ message: string }>('/users/password/reset-confirm', payload)
+    return response.data
   },
 
   me: async (): Promise<User> => {

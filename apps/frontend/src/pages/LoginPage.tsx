@@ -17,6 +17,7 @@ export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [resetSent, setResetSent] = useState(false)
 
   const defaultRoute = getDefaultRouteForRole(user?.role)
 
@@ -33,6 +34,25 @@ export const LoginPage: React.FC = () => {
       navigate(getDefaultRouteForRole(user.role), { replace: true })
     } catch (error) {
       setError(extractApiErrorMessage(error, 'Invalid email or password'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      setError('Introduce tu correo para recuperar la contraseña.')
+      return
+    }
+
+    setError('')
+    setLoading(true)
+    try {
+      await authApi.requestPasswordReset({ email: email.trim() })
+      setResetSent(true)
+      toast.success('Si el correo existe, recibirás instrucciones para recuperar tu contraseña.')
+    } catch (error) {
+      setError(extractApiErrorMessage(error, 'No se pudo enviar la solicitud.'))
     } finally {
       setLoading(false)
     }
@@ -100,18 +120,33 @@ export const LoginPage: React.FC = () => {
               </div>
             )}
 
+            {resetSent && (
+              <div className="bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3">
+                <p className="text-green-400 text-sm font-medium">Revisa tu correo para continuar con la recuperación.</p>
+              </div>
+            )}
+
             <Button type="submit" loading={loading} fullWidth size="lg" className="mt-2">
               Sign in
             </Button>
           </form>
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-4">
-          Don't have an account yet?{' '}
-          <Link to="/register" className="text-brand hover:text-brand-light transition-colors">
-            Sign up
-          </Link>
-        </p>
+        <div className="text-center text-xs text-gray-400 mt-4 space-y-2">
+          <button
+            type="button"
+            onClick={() => void handleForgotPassword()}
+            className="text-brand hover:text-brand-light transition-colors block mx-auto"
+          >
+            Forgot your password?
+          </button>
+          <p>
+            Don't have an account yet?{' '}
+            <Link to="/register" className="text-brand hover:text-brand-light transition-colors">
+              Sign up
+            </Link>
+          </p>
+        </div>
 
         <ContactBar
           email="sr.metzker.lucas@gmail.com"
