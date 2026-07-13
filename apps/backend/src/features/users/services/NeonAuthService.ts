@@ -58,6 +58,46 @@ function getNeonAuthClient() {
   } as any)
 }
 
+function isAbsoluteHttpUrl(value?: string): value is string {
+  if (!value) {
+    return false
+  }
+
+  try {
+    const parsed = new URL(value)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+function normalizeBaseUrl(baseUrl: string): string {
+  return baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
+}
+
+function getNeonVerificationCallbackUrl(): string | undefined {
+  const explicitCallback = process.env.NEON_AUTH_SIGNUP_CALLBACK_URL || process.env.NEON_AUTH_VERIFY_EMAIL_REDIRECT_URL
+  if (isAbsoluteHttpUrl(explicitCallback)) {
+    return explicitCallback
+  }
+
+  const frontendUrl = process.env.FRONTEND_URL
+  if (isAbsoluteHttpUrl(frontendUrl)) {
+    return `${normalizeBaseUrl(frontendUrl)}/login`
+  }
+
+  const firstAllowedOrigin = process.env.ALLOWED_ORIGINS
+    ?.split(',')
+    .map(origin => origin.trim())
+    .find(origin => isAbsoluteHttpUrl(origin))
+
+  if (firstAllowedOrigin) {
+    return `${normalizeBaseUrl(firstAllowedOrigin)}/login`
+  }
+
+  return undefined
+}
+
 function createLocalJwt(user: { id: string; email: string; role: string; establishmentIds: string[] }) {
   return jwt.sign(
     {
@@ -169,14 +209,24 @@ export class NeonAuthService {
     let neonAuthResult: any = null
     try {
       const client = getNeonAuthClient()
+      const callbackURL = getNeonVerificationCallbackUrl()
+
+      if (!callbackURL) {
+        throw new Error(
+          'Missing absolute callback URL for Neon Auth sign-up. Configure NEON_AUTH_SIGNUP_CALLBACK_URL or FRONTEND_URL.'
+        )
+      }
+
       console.info(`[NeonAuth] Registrando usuário: ${input.email}`)
       console.info(`[NeonAuth] NEON_AUTH_URL: ${process.env.NEON_AUTH_URL}`)
       console.info(`[NeonAuth] NEON_AUTH_BASE_URL: ${process.env.NEON_AUTH_BASE_URL}`)
+      console.info(`[NeonAuth] callbackURL: ${callbackURL}`)
 
       neonAuthResult = await client.signUp.email({
         email: input.email,
         password: input.password,
         name: input.name,
+        callbackURL,
       })
       console.info(`[NeonAuth] Usuário registrado com sucesso: ${input.email}`, { userId: neonAuthResult?.user?.id })
     } catch (error) {
