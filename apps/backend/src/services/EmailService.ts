@@ -1,13 +1,10 @@
+import sgMail from '@sendgrid/mail'
+
 /**
  * EmailService - Sends emails for password recovery
  *
- * Development mode: Logs the password reset link to console
- * Production mode: Configure SENDGRID_API_KEY, MAILGUN_API_KEY, or SMTP_HOST to send real emails
- *
- * For production, install the email provider library:
- * - npm install @sendgrid/mail
- * - npm install mailgun.js form-data
- * - npm install nodemailer
+ * Requires: SENDGRID_API_KEY environment variable
+ * Falls back to console logs if not configured
  */
 
 export class EmailService {
@@ -33,10 +30,29 @@ export class EmailService {
       </div>
     `
 
-    // For production, implement your email provider here
-    // For now, just log the link
+    // If SendGrid is configured, send email
+    if (process.env.SENDGRID_API_KEY) {
+      try {
+        sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+
+        await sgMail.send({
+          to: email,
+          from: process.env.SENDGRID_FROM_EMAIL || 'noreply@stratto.com',
+          subject,
+          html,
+        })
+
+        console.info(`[EmailService] Password reset email sent via SendGrid to: ${email}`)
+        return
+      } catch (error) {
+        console.error('[EmailService] SendGrid error:', error instanceof Error ? error.message : String(error))
+        throw error
+      }
+    }
+
+    // Fallback: log the reset link for development
+    console.warn('[EmailService] SENDGRID_API_KEY not configured - logging reset link')
     console.info(`[EmailService] Password reset requested for: ${email}`)
     console.info(`[EmailService] Reset link: ${resetLink}`)
-    console.info(`[EmailService] Configure SENDGRID_API_KEY, MAILGUN_API_KEY, or SMTP_HOST to send real emails`)
   }
 }
