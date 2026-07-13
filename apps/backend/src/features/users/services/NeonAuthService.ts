@@ -164,7 +164,10 @@ export class NeonAuthService {
       })
       console.info(`[NeonAuth] Usuário registrado com sucesso: ${input.email}`, { userId: neonAuthResult?.user?.id })
     } catch (error) {
-      console.error(`[NeonAuth] Erro ao registrar usuário ${input.email}:`, error)
+      const errorMsg = error instanceof Error ? error.message : String(error)
+      const errorDetails = (error as any)?.response?.body || (error as any)?.errors || {}
+      console.error(`[NeonAuth] Erro ao registrar usuário ${input.email}:`, errorMsg)
+      console.error(`[NeonAuth] Detalhes do erro:`, JSON.stringify(errorDetails, null, 2))
       // Continua criando localmente mesmo se Neon Auth falhar
     }
 
