@@ -51,8 +51,11 @@ function getNeonAuthClient() {
     throw new Error('Neon Auth not configured')
   }
 
-  // Initialize Neon Auth client
-  return createAuthClient(process.env.NEON_AUTH_URL!)
+  // Initialize Neon Auth client with baseURL
+  // The second parameter should be options according to Better Auth
+  return createAuthClient(process.env.NEON_AUTH_URL!, {
+    baseURL: process.env.NEON_AUTH_BASE_URL || process.env.NEON_AUTH_URL,
+  } as any)
 }
 
 function createLocalJwt(user: { id: string; email: string; role: string; establishmentIds: string[] }) {
