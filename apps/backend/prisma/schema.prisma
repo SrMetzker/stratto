@@ -17,7 +17,22 @@ model User {
   createdAt DateTime @default(now())
   createdBy String
 
-  establishments EstablishmentUser[]
+  establishments       EstablishmentUser[]
+  passwordResetTokens  PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@index([token])
+  @@index([expiresAt])
 }
 
 model Lead {

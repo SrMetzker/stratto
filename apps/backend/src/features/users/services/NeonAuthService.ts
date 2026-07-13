@@ -223,14 +223,18 @@ export class NeonAuthService {
     const token = crypto.randomBytes(32).toString('hex')
     const expiresAt = new Date(Date.now() + 1000 * 60 * 30)
 
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO "PasswordResetToken" ("id", "userId", "token", "expiresAt", "createdAt") VALUES ($1, $2, $3, $4, $5) ON CONFLICT ("userId") DO UPDATE SET "token" = EXCLUDED."token", "expiresAt" = EXCLUDED."expiresAt", "createdAt" = EXCLUDED."createdAt"`,
-      crypto.randomUUID(),
-      user.id,
-      token,
-      expiresAt,
-      new Date()
-    )
+    await prisma.passwordResetToken.upsert({
+      where: { userId: user.id },
+      update: {
+        token,
+        expiresAt,
+      },
+      create: {
+        userId: user.id,
+        token,
+        expiresAt,
+      },
+    })
 
     return {
       message: 'Si el correo existe, recibirás un enlace para recuperar la contraseña.',
@@ -247,21 +251,17 @@ export class NeonAuthService {
       throw new ValidationError('El token y la nueva contraseña son obligatorios')
     }
 
-    const resetTokenRow = await prisma.$queryRaw<Array<{ id: string; userId: string; token: string; expiresAt: Date }>>`
-      SELECT "id", "userId", "token", "expiresAt"
-      FROM "PasswordResetToken"
-      WHERE "token" = ${input.token}
-      LIMIT 1
-    `
+    const resetToken = await prisma.passwordResetToken.findUnique({
+      where: { token: input.token },
+    })
 
-    const resetToken = resetTokenRow[0]
     if (!resetToken || resetToken.expiresAt < new Date()) {
       throw new AppError(400, 'El enlace de recuperación ha caducado o es inválido')
     }
 
     const hashedPassword = await bcrypt.hash(input.newPassword, 10)
     await prisma.user.update({ where: { id: resetToken.userId }, data: { password: hashedPassword } })
-    await prisma.$executeRawUnsafe(`DELETE FROM "PasswordResetToken" WHERE "token" = $1`, input.token)
+    await prisma.passwordResetToken.delete({ where: { token: input.token } })
 
     return {
       message: 'La contraseña se ha actualizado correctamente.',
