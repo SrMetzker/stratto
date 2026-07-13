@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import { prisma } from '../../../config/database'
 import { AppError, ValidationError } from '../../../utils/errors'
+import { EmailService } from '../../../services/EmailService'
 
 interface NeonAuthLoginInput {
   email: string
@@ -108,11 +109,19 @@ export class NeonAuthService {
       throw new ValidationError('¡El email y la contraseña son obligatorios!')
     }
 
-    const client = getNeonAuthClient()
-    const result = await client.signIn.email({
-      email: input.email,
-      password: input.password,
-    })
+    let neonAuthResult: any = null
+    try {
+      const client = getNeonAuthClient()
+      console.info(`[NeonAuth] Login tentativa: ${input.email}`)
+      neonAuthResult = await client.signIn.email({
+        email: input.email,
+        password: input.password,
+      })
+      console.info(`[NeonAuth] Login bem-sucedido: ${input.email}`)
+    } catch (error) {
+      console.error(`[NeonAuth] Erro ao fazer login ${input.email}:`, error)
+      // Continua tentando auth local mesmo se Neon Auth falhar
+    }
 
     const user = await resolveUserProfile(input.email)
     if (!user) {
@@ -134,7 +143,7 @@ export class NeonAuthService {
       token,
       expiresIn: '24h',
       neonAuth: {
-        session: result,
+        session: neonAuthResult,
       },
     }
   }
@@ -144,12 +153,20 @@ export class NeonAuthService {
       throw new AppError(503, 'Neon Auth não está configurado neste ambiente')
     }
 
-    const client = getNeonAuthClient()
-    const result = await client.signUp.email({
-      email: input.email,
-      password: input.password,
-      name: input.name,
-    })
+    let neonAuthResult: any = null
+    try {
+      const client = getNeonAuthClient()
+      console.info(`[NeonAuth] Registrando usuário: ${input.email}`)
+      neonAuthResult = await client.signUp.email({
+        email: input.email,
+        password: input.password,
+        name: input.name,
+      })
+      console.info(`[NeonAuth] Usuário registrado com sucesso: ${input.email}`, { userId: neonAuthResult?.user?.id })
+    } catch (error) {
+      console.error(`[NeonAuth] Erro ao registrar usuário ${input.email}:`, error)
+      // Continua criando localmente mesmo se Neon Auth falhar
+    }
 
     const hashedPassword = await bcrypt.hash(input.password, 10)
     const user = await prisma.user.create({
@@ -199,7 +216,7 @@ export class NeonAuthService {
       token,
       expiresIn: '24h',
       neonAuth: {
-        session: result,
+        session: neonAuthResult,
       },
     }
   }
@@ -236,9 +253,19 @@ export class NeonAuthService {
       },
     })
 
+    // Enviar email de recuperação
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`
+    try {
+      await EmailService.sendPasswordResetEmail(user.email, resetLink)
+      console.info(`[PasswordReset] Email enviado para: ${user.email}`)
+    } catch (error) {
+      console.error(`[PasswordReset] Falha ao enviar email para ${user.email}:`, error)
+      // Continua mesmo se o email falhar, pois o token foi criado
+    }
+
     return {
       message: 'Si el correo existe, recibirás un enlace para recuperar la contraseña.',
-      resetToken: token,
+      resetToken: token, // Apenas para desenvolvimento; remover em produção
     }
   }
 

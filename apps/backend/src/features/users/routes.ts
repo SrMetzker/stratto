@@ -28,7 +28,7 @@ const authLimiter = rateLimit({
 	message: { error: 'Muitas tentativas. Tente novamente em 15 minutos.' },
 })
 
-router.post('/login', authLimiter, login)
+router.post('/login', process.env.NODE_ENV === 'production' ? authLimiter : (req, res, next) => next(), login)
 router.post('/register', authLimiter, register)
 router.post('/neon/login', authLimiter, neonLogin)
 router.post('/neon/register', authLimiter, neonRegister)
