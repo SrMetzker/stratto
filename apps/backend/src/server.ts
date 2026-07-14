@@ -27,6 +27,8 @@ for (const key of REQUIRED_ENV) {
 const port: number = Number(process.env.PORT) || 3000;
 const app = express()
 
+app.set('trust proxy', true);
+
 // Middlewares
 app.use(helmet())
 app.use(cors({
