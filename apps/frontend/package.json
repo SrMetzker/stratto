@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@neondatabase/neon-js": "^0.6.2-beta",
     "@tanstack/react-query": "^5.28.0",
     "axios": "^1.6.8",
     "lucide-react": "^0.368.0",

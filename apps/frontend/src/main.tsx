@@ -1,10 +1,15 @@
 import React from 'react'
-import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
+import { createRoot } from 'react-dom/client';
+import { NeonAuthUIProvider } from '@neondatabase/neon-js/auth/react';
+import { authClient } from '../lib/auth';
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+
+createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <NeonAuthUIProvider emailOTP authClient={authClient}>
+        <App />
+    </NeonAuthUIProvider>
   </React.StrictMode>,
 )
