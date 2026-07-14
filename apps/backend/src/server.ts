@@ -27,23 +27,31 @@ for (const key of REQUIRED_ENV) {
 const port: number = Number(process.env.PORT) || 3000;
 const app = express()
 
-app.set('trust proxy', true);
+app.set('trust proxy', 10);
 
-// Middlewares
-app.use(helmet())
+// 1. Segurança e CORS (Configurações Iniciais)
+app.use(helmet({
+  // Garante que o Helmet não oculte a política de Referrer necessária pelo Auth
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" }
+}))
+
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) ?? [],
   credentials: true,
 }))
+
+// 2. ROTAS QUE NÃO PODEM PASSAR PELO EXPRESS.JSON GLOBAL
+app.use('/users', usersRoutes)
+
+// 3. MIDDLEWARE DE LEITURA DE BODY (Apenas para as rotas abaixo)
 app.use(express.json({ limit: '10kb' }))
 
-// Routes
+// 4. Rotas Protegidas
 app.use('/establishments', authenticateToken, ensureSubscriptionAccess, establishmentsRoutes)
 app.use('/products', authenticateToken, ensureSubscriptionAccess, productsRoutes)
 app.use('/stock', authenticateToken, ensureSubscriptionAccess, stockRoutes)
 app.use('/orders', authenticateToken, ensureSubscriptionAccess, ordersRoutes)
 app.use('/recipes', authenticateToken, ensureSubscriptionAccess, recipesRoutes)
-app.use('/users', usersRoutes) // Login não precisa de auth
 
 // Error handling
 app.use(errorHandler)
