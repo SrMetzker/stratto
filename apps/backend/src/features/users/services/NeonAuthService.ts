@@ -83,7 +83,7 @@ function getNeonVerificationCallbackUrl(): string | undefined {
 
   const frontendUrl = process.env.FRONTEND_URL
   if (isAbsoluteHttpUrl(frontendUrl)) {
-    return `${normalizeBaseUrl(frontendUrl)}/login`
+    return `${normalizeBaseUrl(frontendUrl)}/dashboard`
   }
 
   const firstAllowedOrigin = process.env.ALLOWED_ORIGINS
