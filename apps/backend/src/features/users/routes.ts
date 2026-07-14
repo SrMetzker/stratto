@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { Router, json } from 'express'
 import rateLimit from 'express-rate-limit'
 import { getUsers } from './controllers/GetUsersController'
 import { createUser } from './controllers/CreateUserController'
@@ -28,14 +28,14 @@ const authLimiter = rateLimit({
 	message: { error: 'Muitas tentativas. Tente novamente em 15 minutos.' },
 })
 
-router.post('/login', process.env.NODE_ENV === 'production' ? authLimiter : (req, res, next) => next(), login)
-router.post('/register', authLimiter, register)
-router.post('/neon/login', authLimiter, neonLogin)
-router.post('/neon/register', authLimiter, neonRegister)
-router.post('/password/reset-request', authLimiter, requestPasswordReset)
-router.post('/password/reset-confirm', authLimiter, confirmPasswordReset)
+router.post('/login', json(), process.env.NODE_ENV === 'production' ? authLimiter : (req, res, next) => next(), login)
+router.post('/register', json(), authLimiter, register)
+router.post('/neon/login', json(), authLimiter, neonLogin)
+router.post('/neon/register', json(), authLimiter, neonRegister)
+router.post('/password/reset-request', json(), authLimiter, requestPasswordReset)
+router.post('/password/reset-confirm', json(), authLimiter, confirmPasswordReset)
 router.get('/plans/public', listPublicPlans)
-router.post('/lead', captureLead)
+router.post('/lead', json(), captureLead)
 
 router.use(authenticateToken)
 
